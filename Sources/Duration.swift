@@ -65,17 +65,14 @@ public class Duration{
 
     /// Ensures that if any parent measurement boundaries have not yet resulted
     /// in output that their headers are displayed
-    private static func reportContaining(){
-        if logStyle != .none &&  depth > 0 {
-            if logStyle == .print{
-                for stackPointer in 0..<timingStack.count{
-                    let containingMeasurement = timingStack[stackPointer]
+    private static func reportContaining() {
+        if depth > 0 && logStyle == .print {
+            for stackPointer in 0..<timingStack.count {
+                let containingMeasurement = timingStack[stackPointer]
 
-                    if !containingMeasurement.reported {
-                        print(String(repeating: "\t" + "Measuring \(containingMeasurement.name):", count: stackPointer))
-                        timingStack[stackPointer] = (containingMeasurement.startTime,containingMeasurement.name,true)
-                    }
-
+                if !containingMeasurement.reported {
+                    print(String(repeating: "\t" + "Measuring \(containingMeasurement.name):", count: stackPointer))
+                    timingStack[stackPointer] = (containingMeasurement.startTime,containingMeasurement.name,true)
                 }
             }
         }
@@ -85,9 +82,6 @@ public class Duration{
     /// desired operations. The `name` will be used to identify this specific
     /// measurement. Multiple calls will nest measurements within each other.
     public static func startMeasurement(_ name: String) {
-        if logStyle == .none {
-            return
-        }
         reportContaining()
         timingStack.append((now,name,false))
 
@@ -98,22 +92,13 @@ public class Duration{
     /// additional information (for example, the number of items processed) then
     /// you can use the `stopMeasurement(executionDetails:String?)` version of
     /// the function.
-    public static func stopMeasurement() -> Double{
-        if logStyle == .none {
-            return 0
-        }
+    public static func stopMeasurement() -> Double {
         return stopMeasurement(nil)
     }
 
     /// Prints a message, optionally with a time stamp (measured from the
     /// start of the current measurement.
     public static func log(message:String, includeTimeStamp:Bool = false) {
-        if logStyle == .none {
-            return
-        }
-        guard logStyle != .none else {
-            return
-        }
         reportContaining()
 
         if includeTimeStamp{
@@ -129,9 +114,6 @@ public class Duration{
 
     /// Stop measuring operations and generate log entry.
     public static func stopMeasurement(_ executionDetails: String?) -> Double {
-        if logStyle == .none {
-            return 0
-        }
         let endTime = now
         precondition(depth > 0, "Attempt to stop a measurement when none has been started")
 
@@ -152,11 +134,6 @@ public class Duration{
     ///  Calls a particular block measuring the time taken to complete the block.
     ///
     public static func measure(_ name: String, block: MeasuredBlock) -> Double {
-        if logStyle == .none {
-            //Still call the block
-            block()
-            return 0
-        }
         startMeasurement(name)
         block()
         return stopMeasurement()
@@ -167,12 +144,10 @@ public class Duration{
     /// number of seconds it took to complete the code. The time
     /// take for each iteration will be logged as well as the average time and
     /// standard deviation.
-    public static func measure(name: String, iterations: Int = 10, forBlock block: MeasuredBlock) -> Double {
-        if logStyle == .none {
-            return 0
-        }
-
+    public static func measure(name: String, iterations: Int = 10, forBlock block: MeasuredBlock) -> [String: Double] {
         precondition(iterations > 0, "Iterations must be a positive integer")
+
+        var data: [String: Double] = [:]
 
         var total : Double = 0
         var samples = [Double]()
@@ -187,28 +162,32 @@ public class Duration{
             samples.append(took)
 
             total += took
+
+            data["\(i+1)"] = took
         }
 
         let mean = total / Double(iterations)
 
+        var deviation = 0.0
+
+        for result in samples {
+
+            let difference = result - mean
+
+            deviation += difference*difference
+        }
+
+        let variance = deviation / Double(iterations)
+
+        data["average"] = mean
+        data["stddev"] = variance
+
         if logStyle == .print {
-
-            var deviation = 0.0
-
-            for result in samples {
-
-                let difference = result - mean
-
-                deviation += difference*difference
-            }
-
-            let variance = deviation / Double(iterations)
-
             print("\(depthIndent)\(name) Average", mean.milliSeconds)
             print("\(depthIndent)\(name) STD Dev.", variance.milliSeconds)
         }
 
-        return mean
+        return data
     }
 }
 
