@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/SwiftStudies/Duration.svg?branch=master)](https://travis-ci.org/SwiftStudies/Duration)
+[![Build Status](https://travis-ci.org/Ponyboy47/Duration.svg?branch=master)](https://travis-ci.org/Ponyboy47/Duration)
 
 # Duration
 A simple Swift package for measuring and reporting the time taken for operations. It is derived from [a version for Playgrounds](http://www.swift-studies.com/blog/2015/5/21/performance-testing-in-xcode-playgrounds) that I blogged about some time ago, but kept needing to use in various projects. 
