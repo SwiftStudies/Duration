@@ -13,20 +13,19 @@ branches:
     - master
     - develop
     - /^issue.*$/
-
-matrix:
-  include:
-    - os: linux
-      dist: trusty
-      sudo: required
-    - os: osx
-      osx_image: xcode11.4
-      sudo: required
-
-before_install:
-  - git clone https://github.com/IBM-Swift/Package-Builder.git
-
+env:
+  - SWIFT_VERSION=5.2.1
+  
+os:
+  - linux
+  - osx
+language: generic
+sudo: required
+dist: bionic
+osx_image: xcode11.3
+install:
+  - eval "$(curl -sL https://swiftenv.fuller.li/install.sh)"
+ 
 script:
-  - ./Package-Builder/build-package.sh -projectDir $TRAVIS_BUILD_DIR
-#  - swift build
+  - swift build
 #  - swift build -c release
